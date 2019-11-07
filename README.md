@@ -1,2 +1,2 @@
 # codeGeneratorTemplate
-基于ivew的模板
+基于ivew的动软代码生成器模板
