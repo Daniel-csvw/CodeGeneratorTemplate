@@ -1,0 +1,285 @@
+﻿<#@ template language="c#" HostSpecific="True" #>
+<#@ output extension= ".aspx" #>
+<#
+	TableHost host = (TableHost)(Host);			
+	
+#>
+	 
+<template>
+    <div class="content-inner">
+        <Card>
+             <!-- 查询框-->
+            <bingo-query ref="query" type="modal" :col="query.col" :labelWidth="query.labelWidth" @on-submit="getData" @on-reset="getData" :data="queryData" >	
+ <# foreach (ColumnInfo c in host.Fieldlist) { #>
+		  <# if (!c.IsPrimaryKey && !c.IsIdentity) { #>
+			<bingo-grid-item>
+                <FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>">
+                      <Input v-model="queryData.<#=ToCamel(c.ColumnName) #>" placeholder="请输入" element-id="<#=ToCamel(c.ColumnName) #>" @keydown.enter.native="getData"/>
+                </FormItem>
+            </bingo-grid-item>	
+           <# } #> 	
+ <# } #> 
+		
+</bingo-query>
+         <!-- 主表-->
+            <bingo-table
+                    ref="table"
+                    @getData="getData"
+                    @on-new="add"
+                    @on-delete="deleteData"
+                    :columns="columns"
+                    :data="data"
+                    :toolbar="model.toolbar"
+                    :border="model.border"
+                    :page="model.page"
+                    :pageSetting="model.pageSetting"
+                    :showAllButton="model.showAllButton"
+            >
+                <Button type='primary' customIcon='iconfont icondaochu' @click="exportFile" >导出</Button>
+                <span slot="action" slot-scope="{ row, index }">
+                    <bingo-action-drop>
+                        <a @click="edit (row)">编辑</a>
+                        <span slot="list">
+                            <DropdownItem>
+                                <span @click="edit (row)">编辑</span>
+                            </DropdownItem>
+                            <DropdownItem>
+                                <span @click="editDetailItem(row)">配置</span>
+                            </DropdownItem>
+                            <DropdownItem>
+                                <span @click="del (row)">删除</span>
+                            </DropdownItem>
+                         </span>
+                    </bingo-action-drop>
+                </span>
+                <span slot="gesch" slot-scope="{ row, index }">
+                   {{row.gesch | formatGesch}}
+                </span>
+            </bingo-table>
+             <!-- 细表弹出框-->
+             <bingo-modal-form ref="form" :col="col" title="表单"  :data="modalData" :width="800" :labelWidth="120"
+                              :button="false" :rules="rules" @on-save="handleSubmit">
+<# foreach (ColumnInfo c in host.Fieldlist) { #>
+ 				<bingo-grid-item>
+                    <FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>"  prop="<#=ToCamel(c.ColumnName) #>">
+                        <Input v-model="modalData.<#=ToCamel(c.ColumnName) #>" 
+                               placeholder="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>"
+                                <!-- :autosize="{maxRows:5,minRows: 5}" type ='textarea' style="height:100px"-->
+                         />
+                    </FormItem>
+                </bingo-grid-item>
+
+ <# } #>                
+            </bingo-modal-form>
+            
+        </Card>
+    </div>
+</template>	
+
+<script>
+    import bingoModalForm  from '@/components/bingo-modal-form';
+    import bingoGridItem from '@/components/bingo-query/bingo-grid-item';
+    import bingoTable from '@/components/bingo-table';
+    import bingoQuery from '@/components/bingo-query';
+    import bingoModal from '@/components/bingo-modal';
+    import bingoActionDrop from '@/components/bingo-action-drop';
+    //import dictItem from './dictItem/index'; //detail component
+
+    // import * as Api from '@/api/masterdata/projectinfo/tmProject';
+    export default {
+        data () {
+            return {
+                excelsImport:Api.excelsImport,
+                loading:false,
+                MainId:'',// 主表id，用于传给细表
+                //输入框的查询值
+                queryData: {
+           <# foreach (ColumnInfo c in host.Fieldlist) { #>
+           <#=ToCamel(c.ColumnName) #>: '',
+           <# } #>
+          		 },
+                fullFlag: false,
+
+                columns: [ 
+                     {
+                        type: 'selection',
+                        width: 60,
+                        align: 'center',
+                        fixed: 'left'
+                    },
+                    {
+                        type: 'index',
+                        width: 60,
+                        align: 'center',
+                        fixed: 'left'
+                    },
+                    {
+                        title: '操作',
+                        key: 'action',
+                        width: 100,
+                        slot: 'action',
+                        fixed: 'left',
+                        align: 'center'
+                    },
+                   <# foreach (ColumnInfo c in host.Fieldlist) { #>                  
+                       {
+                        title: '<#=c.Description #>',
+                        key: '<#=ToCamel(c.ColumnName) #>',
+                        minwidth: 120
+                    },
+                   <# } #> 
+                ],
+                data: [],
+                model: {
+                    toolbar: true,
+                    border: true,
+                    page: true,
+                    pageSetting: {
+                        pageNum: 1,//第几页
+                        pageTotal: 50,//总记录数
+                        pageSize: 40,//每页多少条
+                        showSizer: true,
+                        pageSizeOpts: [15, 20, 30, 50,100]
+                    },
+                    showAllButton:false
+                },
+                query: {
+                    col: 4,
+                    labelWidth: 90
+                },
+                 rules: {                    
+                     <# foreach (ColumnInfo c in host.Fieldlist) { #>                    
+                       <#=ToCamel(c.ColumnName) #>: [
+                          { required: true, message: '不能为空', trigger: 'change' }
+                       ],                    
+                      <# } #>
+},
+                modalData: {
+                    dictName:"",
+                    dictCode:"",
+                    description:""
+                },
+
+            }
+        },
+        components: {
+             bingoTable, bingoQuery, bingoModal, bingoModalForm, bingoGridItem,bingoActionDrop,dictItem
+        },
+
+        methods: {
+            getData () {
+                this.$refs.table.setLoading();
+                let params={};
+                params=Object.assign(this.$refs.table.getParams(),this.$refs.query.getParams())
+                console.log(params);
+                Api.getTableData(params).then(res => {
+                    this.$refs.table.setLoading();
+                    this.model.pageSetting.pageTotal = res.data.total;
+                    this.data = res.data.rows;
+                })
+            },
+            handleSubmit () {
+                if(this.modalData.id){
+                    Api.editTableData(this.modalData).then(res => {
+                        this.$Message.success(res.msg);
+                        this.$refs.form.show = false;
+                        this.getData ();
+                    })
+                }else {
+                    Api.addTableData(this.modalData).then(res => {
+                        this.$Message.success(res.msg);
+                        this.$refs.form.show = false;
+                        this.getData ();
+                    })
+                }
+
+            },
+            add(){
+                this.$refs.form.show = true;
+                this.$refs.form.resetFields();
+            },
+            edit (row) {
+                this.$refs.form.show = true;
+                Api.getTableDetailById(row.id).then(res => {
+                    this.modalData=res.data;
+                })
+            },
+            del (row) {
+                this.$Modal.confirm({
+                    title: '二次确认提示',
+                    content: '<p>确定删除此操作吗</p>',
+                    onOk: () => {
+                        Api.delTableData(row.id).then(res => {
+                            this.$Message.success(res.msg);
+                            this.getData ();
+                        })
+                    }
+                });
+            },
+            //批量删除
+            deleteData () {
+                let idArr= [];
+                for(let data of this.$refs.table.selection){
+                    idArr.push(data.id);
+                }
+                this.$Modal.confirm({
+                    title: '二次确认提示',
+                    content: '<p>确定批量删除选中项此吗</p>',
+                    onOk: () => {
+                        Api.deleteBatch({ids:idArr}).then(res => {
+                            this.$Message.success(res.msg);
+                            this.getData ();
+                        })
+                    }
+                });
+
+            },
+            editDetailItem(row){
+                this.$refs.modal.show=true;
+                this.dictId=row.id;
+            },
+            exportFile () {
+                Api.exportExcel({all:true}).then(res => {
+                    window.location.href = Api.download + res.data.filePath;
+                })
+            },
+            importSuccess (response, file, fileList) {
+                this.getData ();
+            },
+            
+            //细表表单按钮ok
+            ok () {
+                this.$Message.info('Clicked  ok');
+            },
+            //细表表单按钮cancel
+            cancel () {
+                this.$Message.info('Clicked cancel');
+            },
+        },
+        mounted () {
+            this.getData();
+        }
+    }
+</script>
+<style scoped>
+
+</style>
+
+
+
+<#+
+//convert to camel
+ private string ToCamel(string item)
+        {
+             while (item.IndexOf('_') >= 0)
+            {
+
+               string newUpper = item.Substring(item.IndexOf('_'), 2);
+
+               item =   item.Replace(newUpper, newUpper.Trim('_').ToUpper());                
+
+            }
+            return item;
+        }
+
+#>

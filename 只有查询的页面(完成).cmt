@@ -1,0 +1,156 @@
+﻿<#@ template language="c#" HostSpecific="True" #>
+<#@ output extension= ".aspx" #>
+<#
+	TableHost host = (TableHost)(Host);		
+	//string ModelSpace = host.NameSpace+".Model."+ host.GetModelClass(host.TableName);
+	//string DALSpace= host.NameSpace+".BLL."+ host.GetBLLClass(host.TableName);
+	//ColumnInfo identityKey=host.IdentityKey;	
+	
+	
+#>
+	 
+<template>
+    <div class="content-inner">
+        <Card>
+            <bingo-query ref="query" type="float" :col="query.col" :labelWidth="query.labelWidth" @on-submit="getData" @on-reset="getData" :data="queryData" >	
+ <# foreach (ColumnInfo c in host.Fieldlist) { #>		 
+			 <# if (!c.IsPrimaryKey && !c.IsIdentity) { #>
+			<bingo-grid-item>
+                <FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>">
+                      <Input v-model="queryData.<#=ToCamel(c.ColumnName) #>" placeholder="请输入" element-id="<#=ToCamel(c.ColumnName) #>" @keydown.enter.native="getData"/>
+                </FormItem>
+            </bingo-grid-item>	
+           <# } #> 	
+ <# } #>
+		
+</bingo-query>
+            <bingo-table
+                    ref="table"
+                    @getData="getData"
+                    :columns="columns"
+                    :data="data"
+                    :toolbar="model.toolbar"
+                    :border="model.border"
+                    :page="model.page"
+                    :pageSetting="model.pageSetting"
+                    :showAllButton="model.showAllButton"
+            >
+                <Button type='primary' customIcon='iconfont icondaochu' @click="exportFile" >导出</Button>
+            </bingo-table>
+        </Card>
+    </div>
+</template>	
+
+<script>
+    import bingoModalForm  from '@/components/bingo-modal-form';
+    import bingoGridItem from '@/components/bingo-query/bingo-grid-item';
+    import bingoTable from '@/components/bingo-table';
+    import bingoQuery from '@/components/bingo-query';
+    import bingoModal from '@/components/bingo-modal';
+    import bingoActionDrop from '@/components/bingo-action-drop';
+
+
+   // import * as Api from '@/api/masterdata/projectinfo/tmProject';
+    export default {
+        data () {
+            return {
+                excelsImport:Api.excelsImport,
+                loading:false,
+                //输入框的查询值
+                queryData: {
+           <# foreach (ColumnInfo c in host.Fieldlist) { #>
+           <#=ToCamel(c.ColumnName) #>: '',
+           <# } #>
+          		 },
+                fullFlag: false,
+               columns: [ 
+               		{
+                        type: 'selection',
+                        width: 60,
+                        align: 'center',
+                        fixed: 'left'
+                    },
+                    {
+                        type: 'index',
+                        width: 60,
+                        align: 'center',
+                        fixed: 'left'
+                    },
+<# foreach (ColumnInfo c in host.Fieldlist) {                    
+  if (!c.IsPrimaryKey && !c.IsIdentity) { #>                      
+                    {
+                        title: '<#=c.Description #>',
+                        key: '<#=ToCamel(c.ColumnName) #>',
+                        minwidth: 120
+                    },<# }  } #>
+                ],
+                data: [],
+                model: {
+                    toolbar: true,
+                    border: true,
+                    page: true,
+                    pageSetting: {
+                        pageNum: 1,//第几页
+                        pageTotal: 50,//总记录数
+                        pageSize: 15,//每页多少条
+                        showSizer: true,
+                        pageSizeOpts: [15, 20, 30, 50,100]
+                    },
+                    showAllButton:false
+                },
+                query: {
+                    col: 6,
+                    labelWidth: 90
+                },
+
+            }
+        },
+        components: {
+            bingoTable, bingoQuery, bingoModal, bingoModalForm, bingoGridItem,bingoActionDrop
+        },
+
+        methods: {
+            getData () {
+                this.$refs.table.setLoading();
+                let params={};
+                params=Object.assign(this.$refs.table.getParams(),this.$refs.query.getParams())
+                params=Object.assign(this.$refs.table.getParams(),this.queryData)
+                Api.getTableData(params).then(res => {
+                    this.$refs.table.setLoading();
+                    this.model.pageSetting.pageTotal = res.data.total;//总记录数
+                    this.data = res.data.rows;
+                })
+            },
+            exportFile () {
+                Api.exportExcel({all:true}).then(res => {
+                    window.location.href = Api.download + res.data.filePath;
+                })
+            },
+        },
+        mounted () {
+            this.getData();
+        }
+    }
+</script>
+<style scoped>
+
+</style>
+
+
+
+<#+
+//convert to camel
+ private string ToCamel(string item)
+        {
+             while (item.IndexOf('_') >= 0)
+            {
+
+               string newUpper = item.Substring(item.IndexOf('_'), 2);
+
+               item =   item.Replace(newUpper, newUpper.Trim('_').ToUpper());                
+
+            }
+            return item;
+        }
+
+#>
