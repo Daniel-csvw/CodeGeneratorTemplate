@@ -15,22 +15,19 @@
             <bingo-query ref="query" type="float" :col="query.col" :labelWidth="query.labelWidth" @on-submit="getData" @on-reset="getData" :data="queryData" >	
  <# foreach (ColumnInfo c in host.Fieldlist) { #>		 
 			 <# if (!c.IsPrimaryKey && !c.IsIdentity) { #>
-			<bingo-grid-item>
+<bingo-grid-item>
 			    <# if(c.ColumnName.Contains("is_")) {#>
-                <FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>" element-id="<#=ToCamel(c.ColumnName) #>">
-                        <Select v-model="modalData.isEmatrixUser" disabled>
+	<FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>" element-id="<#=ToCamel(c.ColumnName) #>">
+                        <Select v-model="modalData.<#=ToCamel(c.ColumnName) #>" disabled>
                             <Option :value=1>是</Option>
                             <Option :value=0>否</Option>
                         </Select>
-                </FormItem>
-                
+               		 </FormItem> 
                 <#} else {#>
-                   <FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>">
+	<FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>">
                       <Input v-model="queryData.<#=ToCamel(c.ColumnName) #>" placeholder="请输入" element-id="<#=ToCamel(c.ColumnName) #>" @keydown.enter.native="getData"/>
                    </FormItem>                
-                <#}#>
-                
-            </bingo-grid-item>	
+            <#}#></bingo-grid-item>	
            <# } #> 	
  <# } #>
 		
@@ -46,7 +43,14 @@
                     :pageSetting="model.pageSetting"
                     :showAllButton="model.showAllButton"
             >
-                <Button type='primary' customIcon='iconfont icondaochu' @click="exportFile" >导出</Button>
+                <Button type='primary' customIcon='iconfont icondaochu' @click="exportFile" >导出</Button> 
+                 <# foreach (ColumnInfo c in host.Fieldlist) {                    
+  				if (!c.IsPrimaryKey && !c.IsIdentity) {  
+  				if(c.ColumnName.Contains("is_")) {#>    				
+  				    <span slot="<#=ToCamel(c.ColumnName) #>" slot-scope="{ row, index }">
+                  		 {{row.<#=ToCamel(c.ColumnName) #> | format<#=ToCamel_FirstUpper(c.ColumnName) #>}}
+              		</span>  				
+  				<#}}}#> 
             </bingo-table>
         </Card>
     </div>
@@ -61,7 +65,7 @@
     import bingoActionDrop from '@/components/bingo-action-drop';
 
 
-   // import * as Api from '@/api/masterdata/projectinfo/tmProject';
+    import * as Api from '@/api/masterdata/dict/dict';
     export default {
         data () {
             return {
@@ -142,13 +146,29 @@
         components: {
             bingoTable, bingoQuery, bingoModal, bingoModalForm, bingoGridItem,bingoActionDrop
         },
+ <# foreach (ColumnInfo c in host.Fieldlist) {                    
+  if (!c.IsPrimaryKey && !c.IsIdentity) {  
+  if(c.ColumnName.Contains("is_")) {#>       
+        filters: {
+            format<#=ToCamel_FirstUpper(c.ColumnName) #> (value) {
+                let <#=ToCamel_FirstUpper(c.ColumnName) #> = ""
+                if (value == 1) {
+                    <#=ToCamel_FirstUpper(c.ColumnName) #> = "是"
+                } else if (value == 0) {
+                    <#=ToCamel_FirstUpper(c.ColumnName) #> = "否"
+                }
+                return <#=ToCamel_FirstUpper(c.ColumnName) #>;
+            }, 
 
+        },
+ <#}}  }#>  
+ 
         methods: {
             getData () {
                 this.$refs.table.setLoading();
                 let params={};
                 params=Object.assign(this.$refs.table.getParams(),this.$refs.query.getParams())
-                params=Object.assign(this.$refs.table.getParams(),this.queryData)
+              
                 Api.getTableData(params).then(res => {
                     this.$refs.table.setLoading();
                     this.model.pageSetting.pageTotal = res.data.total;//总记录数
@@ -184,6 +204,19 @@
                item =   item.Replace(newUpper, newUpper.Trim('_').ToUpper());                
 
             }
+            return item;
+        }
+        
+ private string ToCamel_FirstUpper(string item)
+        {        
+            
+            while (item.IndexOf('_') >= 0)
+            {
+               string newUpper = item.Substring(item.IndexOf('_'), 2);
+               item =   item.Replace(newUpper, newUpper.Trim('_').ToUpper());               
+
+            }
+           item= item.Remove(1).ToUpper() + item.Substring(1);
             return item;
         }
 

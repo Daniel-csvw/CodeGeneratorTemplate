@@ -173,7 +173,7 @@
                 this.$refs.table.setLoading();
                 let params={};
                 params=Object.assign(this.$refs.table.getParams(),this.$refs.query.getParams())
-                console.log(params);
+              
                 Api.getTableData(params).then(res => {
                     this.$refs.table.setLoading();
                     this.model.pageSetting.pageTotal = res.data.total;
