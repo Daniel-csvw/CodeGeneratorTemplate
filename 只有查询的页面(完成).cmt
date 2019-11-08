@@ -16,9 +16,20 @@
  <# foreach (ColumnInfo c in host.Fieldlist) { #>		 
 			 <# if (!c.IsPrimaryKey && !c.IsIdentity) { #>
 			<bingo-grid-item>
-                <FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>">
-                      <Input v-model="queryData.<#=ToCamel(c.ColumnName) #>" placeholder="请输入" element-id="<#=ToCamel(c.ColumnName) #>" @keydown.enter.native="getData"/>
+			    <# if(c.ColumnName.Contains("is_")) {#>
+                <FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>" element-id="<#=ToCamel(c.ColumnName) #>">
+                        <Select v-model="modalData.isEmatrixUser" disabled>
+                            <Option :value=1>是</Option>
+                            <Option :value=0>否</Option>
+                        </Select>
                 </FormItem>
+                
+                <#} else {#>
+                   <FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>">
+                      <Input v-model="queryData.<#=ToCamel(c.ColumnName) #>" placeholder="请输入" element-id="<#=ToCamel(c.ColumnName) #>" @keydown.enter.native="getData"/>
+                   </FormItem>                
+                <#}#>
+                
             </bingo-grid-item>	
            <# } #> 	
  <# } #>
@@ -63,27 +74,50 @@
            <# } #>
           		 },
                 fullFlag: false,
-               columns: [ 
-               		{
-                        type: 'selection',
-                        width: 60,
-                        align: 'center',
-                        fixed: 'left'
-                    },
-                    {
-                        type: 'index',
-                        width: 60,
-                        align: 'center',
-                        fixed: 'left'
+                columns: [ 
+               			{
+                     	     type: 'selection',
+                     	     width: 60,
+                         	 align: 'center',
+                        	 fixed: 'left'
+                  	    },
+                    	{
+                      		  type: 'index',
+                      		  width: 60,
+                      		  align: 'center',
+                      		  fixed: 'left'
                     },
 <# foreach (ColumnInfo c in host.Fieldlist) {                    
   if (!c.IsPrimaryKey && !c.IsIdentity) { #>                      
                     {
                         title: '<#=c.Description #>',
                         key: '<#=ToCamel(c.ColumnName) #>',
-                        minwidth: 120
+                        minwidth: 120,
+                        sortable: true,
+                        resizable: true,                        
+<# if(c.ColumnName.Contains("is_")) {#>
+                        slot:'<#=ToCamel(c.ColumnName) #>',                        
+                        filters: [
+                            {
+                                label: '是',
+                                value: 1
+                            },
+                            {
+                                label: '否',
+                                value: 0
+                            }
+                        ],
+                        filterMethod (value, row) {
+                            if (value === 0) {
+                                return row.<#=ToCamel(c.ColumnName) #> == 0;
+                            } else if (value === 1) {
+                                return row.<#=ToCamel(c.ColumnName) #> == 1;
+                            }
+                        },
+                  <# }#>
                     },<# }  } #>
-                ],
+            
+            ],
                 data: [],
                 model: {
                     toolbar: true,
