@@ -32,6 +32,10 @@
             <bingo-table
                     ref="table"
                     @getData="getData"
+                      <#if(isEditable()){#>
+                    @on-new="add"
+                    @on-delete="deleteData"
+                    <#}#>
                     :columns="columns"
                     :data="data"
                     :toolbar="model.toolbar"
