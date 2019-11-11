@@ -1,12 +1,7 @@
 ﻿<#@ template language="c#" HostSpecific="True" #>
 <#@ output extension= ".aspx" #>
 <#
-	TableHost host = (TableHost)(Host);		
-	//string ModelSpace = host.NameSpace+".Model."+ host.GetModelClass(host.TableName);
-	//string DALSpace= host.NameSpace+".BLL."+ host.GetBLLClass(host.TableName);
-	//ColumnInfo identityKey=host.IdentityKey;	
-	
-	
+	TableHost host = (TableHost)(Host);
 #>
 	 
 <template>
@@ -15,21 +10,22 @@
             <bingo-query ref="query" type="float" :col="query.col" :labelWidth="query.labelWidth" @on-submit="getData" @on-reset="getData" :data="queryData" >	
  <# foreach (ColumnInfo c in host.Fieldlist) { #>		 
 			 <# if (!c.IsPrimaryKey && !c.IsIdentity) { #>
-<bingo-grid-item>
-			    <# if(c.ColumnName.Contains("is_")) {#>
-	<FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>" element-id="<#=ToCamel(c.ColumnName) #>">
-                        <Select v-model="modalData.<#=ToCamel(c.ColumnName) #>" disabled>
+                <bingo-grid-item>
+			       <# if(c.ColumnName.Contains("is_")) {#>
+	               <FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>" element-id="<#=ToCamel(c.ColumnName) #>">
+                        <Select v-model="queryData.<#=ToCamel(c.ColumnName) #>" disabled>
                             <Option :value=1>是</Option>
                             <Option :value=0>否</Option>
                         </Select>
-               		 </FormItem> 
-                <#} else {#>
-	<FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>">
-                      <Input v-model="queryData.<#=ToCamel(c.ColumnName) #>" placeholder="请输入" element-id="<#=ToCamel(c.ColumnName) #>" @keydown.enter.native="getData"/>
-                   </FormItem>                
-            <#}#></bingo-grid-item>	
-           <# } #> 	
- <# } #>
+                   </FormItem>
+                   <#} else {#>
+	               <FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>">
+                       <Input v-model="queryData.<#=ToCamel(c.ColumnName) #>" placeholder="请输入" element-id="<#=ToCamel(c.ColumnName) #>" @keydown.enter.native="getData"/>
+                   </FormItem>
+                   <#}#>
+                </bingo-grid-item>
+           <#}#>
+ <#}#>
 		
 </bingo-query>
             <bingo-table
@@ -43,14 +39,16 @@
                     :pageSetting="model.pageSetting"
                     :showAllButton="model.showAllButton"
             >
-                <Button type='primary' customIcon='iconfont icondaochu' @click="exportFile" >导出</Button> 
-                 <# foreach (ColumnInfo c in host.Fieldlist) {                    
-  				if (!c.IsPrimaryKey && !c.IsIdentity) {  
-  				if(c.ColumnName.Contains("is_")) {#>    				
-  				    <span slot="<#=ToCamel(c.ColumnName) #>" slot-scope="{ row, index }">
-                  		 {{row.<#=ToCamel(c.ColumnName) #> | format<#=ToCamel_FirstUpper(c.ColumnName) #>}}
-              		</span>  				
-  				<#}}}#> 
+                <Button type='primary' customIcon='iconfont icondaochu' @click="exportFile" >导出</Button>
+                <# foreach (ColumnInfo c in host.Fieldlist) {
+  				    if (!c.IsPrimaryKey && !c.IsIdentity) {
+  				        if(c.ColumnName.Contains("is_") ||  c.TypeName.ToString()=="datetime") {#>
+  				          <span slot="<#=ToCamel(c.ColumnName) #>" slot-scope="{ row, index }">
+                  	    	  {{row.<#=ToCamel(c.ColumnName) #> | format<#=ToCamel_FirstUpper(c.ColumnName) #>}}
+              		     </span>
+  				        <#}#>
+                    <#}#>
+                <#}#>
             </bingo-table>
         </Card>
     </div>
@@ -63,7 +61,7 @@
     import bingoQuery from '@/components/bingo-query';
     import bingoModal from '@/components/bingo-modal';
     import bingoActionDrop from '@/components/bingo-action-drop';
-
+    import {formatDate} from "view-design/src/components/date-picker/util";
 
     import * as Api from '@/api/masterdata/dict/dict';
     export default {
@@ -73,9 +71,9 @@
                 loading:false,
                 //输入框的查询值
                 queryData: {
-           <# foreach (ColumnInfo c in host.Fieldlist) { #>
-           <#=ToCamel(c.ColumnName) #>: '',
-           <# } #>
+                   <# foreach (ColumnInfo c in host.Fieldlist) { #>
+                   <#=ToCamel(c.ColumnName) #>: '',
+                   <# } #>
           		 },
                 fullFlag: false,
                 columns: [ 
@@ -91,35 +89,41 @@
                       		  align: 'center',
                       		  fixed: 'left'
                     },
-<# foreach (ColumnInfo c in host.Fieldlist) {                    
-  if (!c.IsPrimaryKey && !c.IsIdentity) { #>                      
+           <# foreach (ColumnInfo c in host.Fieldlist) {
+                if (!c.IsPrimaryKey && !c.IsIdentity) { #>
                     {
                         title: '<#=c.Description #>',
                         key: '<#=ToCamel(c.ColumnName) #>',
                         minwidth: 120,
                         sortable: true,
-                        resizable: true,                        
-<# if(c.ColumnName.Contains("is_")) {#>
-                        slot:'<#=ToCamel(c.ColumnName) #>',                        
-                        filters: [
-                            {
-                                label: '是',
-                                value: 1
+                        resizable: true,
+                        <# if (c.TypeName.ToString()=="datetime" || c.ColumnName.Contains("is_")) { #>
+                        slot:'<#=ToCamel(c.ColumnName) #>',//当用filters时，需要定义一个slot(bool类型，日期格式)
+                        <#}#>
+
+                     <# if(c.ColumnName.Contains("is_")) {#>
+                            //表格过滤小箭头[是、否]
+                            filters: [
+                                {
+                                    label: '是',
+                                    value: 1
+                                },
+                                {
+                                    label: '否',
+                                    value: 0
+                                }
+                            ],
+                            //选择过滤选项时触发的前台过滤方法
+                            filterMethod (value, row) {
+                                if (value === 0) {
+                                    return row.<#=ToCamel(c.ColumnName) #> == 0;
+                                } else if (value === 1) {
+                                    return row.<#=ToCamel(c.ColumnName) #> == 1;
+                                }
                             },
-                            {
-                                label: '否',
-                                value: 0
-                            }
-                        ],
-                        filterMethod (value, row) {
-                            if (value === 0) {
-                                return row.<#=ToCamel(c.ColumnName) #> == 0;
-                            } else if (value === 1) {
-                                return row.<#=ToCamel(c.ColumnName) #> == 1;
-                            }
-                        },
-                  <# }#>
-                    },<# }  } #>
+                     <#}#>
+                    },
+           <# } } #>
             
             ],
                 data: [],
@@ -146,23 +150,28 @@
         components: {
             bingoTable, bingoQuery, bingoModal, bingoModalForm, bingoGridItem,bingoActionDrop
         },
- <# foreach (ColumnInfo c in host.Fieldlist) {                    
-  if (!c.IsPrimaryKey && !c.IsIdentity) {  
-  if(c.ColumnName.Contains("is_")) {#>       
         filters: {
-            format<#=ToCamel_FirstUpper(c.ColumnName) #> (value) {
-                let <#=ToCamel_FirstUpper(c.ColumnName) #> = ""
-                if (value == 1) {
-                    <#=ToCamel_FirstUpper(c.ColumnName) #> = "是"
-                } else if (value == 0) {
-                    <#=ToCamel_FirstUpper(c.ColumnName) #> = "否"
-                }
-                return <#=ToCamel_FirstUpper(c.ColumnName) #>;
-            }, 
-
-        },
- <#}}  }#>  
- 
+                     <# foreach (ColumnInfo c in host.Fieldlist){ #>
+                    <# if (!c.IsPrimaryKey && !c.IsIdentity) {#>
+                                <#if(c.ColumnName.Contains("is_")) {#>
+                                        format<#=ToCamel_FirstUpper(c.ColumnName) #> (value) {
+                                            let <#=ToCamel_FirstUpper(c.ColumnName) #> = ""
+                                            if (value == 1) {
+                                                <#=ToCamel_FirstUpper(c.ColumnName) #> = "是"
+                                            } else if (value == 0) {
+                                                <#=ToCamel_FirstUpper(c.ColumnName) #> = "否"
+                                            }
+                                            return <#=ToCamel_FirstUpper(c.ColumnName) #>;
+                                        },
+                                 <#}#>
+                                 <#if(c.TypeName.ToString()=="datetime") {#>
+                                        format<#=ToCamel_FirstUpper(c.ColumnName) #> (value) {
+                                             let   <#=ToCamel_FirstUpper(c.ColumnName) #>=  formatDate(value)
+                                             return   <#=ToCamel_FirstUpper(c.ColumnName) #>
+                                         },
+                                 <#}#>
+                    <#}}#>
+                 },
         methods: {
             getData () {
                 this.$refs.table.setLoading();
