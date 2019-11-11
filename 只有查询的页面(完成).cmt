@@ -2,6 +2,7 @@
 <#@ output extension= ".aspx" #>
 <#
 	TableHost host = (TableHost)(Host);
+    
 #>
 	 
 <template>
@@ -40,6 +41,24 @@
                     :showAllButton="model.showAllButton"
             >
                 <Button type='primary' customIcon='iconfont icondaochu' @click="exportFile" >导出</Button>
+                <#if(isEditable()){#>
+                <span slot="action" slot-scope="{ row, index }">
+                    <bingo-action-drop>
+                        <a @click="edit (row)">编辑</a>
+                        <span slot="list">
+                            <DropdownItem>
+                                <span @click="edit (row)">编辑</span>
+                            </DropdownItem>
+                            <# if (hasDetail()) { #><DropdownItem>
+                                <span @click="editDetailItem(row)">配置细表</span>
+                            </DropdownItem><# } #>
+                            <DropdownItem>
+                                <span @click="del (row)">删除</span>
+                            </DropdownItem>
+                         </span>
+                    </bingo-action-drop>
+                </span>
+                <#}#>
                 <# foreach (ColumnInfo c in host.Fieldlist) {
   				    if (!c.IsPrimaryKey && !c.IsIdentity) {
   				        if(c.ColumnName.Contains("is_") ||  c.TypeName.ToString()=="datetime") {#>
@@ -50,6 +69,23 @@
                     <#}#>
                 <#}#>
             </bingo-table>
+            <#if(isEditable()){#>
+            <!-- 主表修改弹出框-->
+             <bingo-modal-form ref="form" :col="col" title="表单"  :data="modalData" :width="800" :labelWidth="120"
+                              :button="false" :rules="rules" @on-save="handleSubmit">
+                <# foreach (ColumnInfo c in host.Fieldlist) { #>
+                <# if (!c.IsPrimaryKey && !c.IsIdentity) { #>
+                <bingo-grid-item>
+                    <FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>"  prop="<#=ToCamel(c.ColumnName) #>">
+                    <Input v-model="modalData.<#=ToCamel(c.ColumnName) #>"
+                           placeholder="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" />
+                    <!-- :autosize="{maxRows:5,minRows: 5}" type ='textarea' style="height:100px"-->
+                    </FormItem>
+                </bingo-grid-item>
+                <# } #>
+                <# } #>
+             </bingo-modal-form>
+            <# } #>
         </Card>
     </div>
 </template>	
@@ -76,6 +112,9 @@
                    <# } #>
           		 },
                 fullFlag: false,
+                <#if(isEditable()){#>
+                col: 1,
+                <#}#>
                 columns: [ 
                			{
                      	     type: 'selection',
@@ -88,7 +127,17 @@
                       		  width: 60,
                       		  align: 'center',
                       		  fixed: 'left'
-                    },
+                       },
+                    <# if(isEditable()){#>
+                        {
+                            title: '操作',
+                            key: 'action',
+                            width: 100,
+                            slot: 'action',
+                            fixed: 'left',
+                            align: 'center'
+                        },
+                    <#}#>
            <# foreach (ColumnInfo c in host.Fieldlist) {
                 if (!c.IsPrimaryKey && !c.IsIdentity) { #>
                     {
@@ -138,13 +187,32 @@
                         showSizer: true,
                         pageSizeOpts: [15, 20, 30, 50,100]
                     },
-                    showAllButton:false
+                      <# if(isEditable()){#>
+                        showAllButton:true,
+                      <#}else{#>
+                        showAllButton:false,   
+                      <#}#>
                 },
                 query: {
                     col: 6,
                     labelWidth: 90
                 },
-
+            <# if(isEditable()){#>
+                //主表编辑页面的校验
+                rules: {
+                <# foreach (ColumnInfo c in host.Fieldlist) { #>
+                    <#=ToCamel(c.ColumnName) #>: [
+                        { required: true, message: '不能为空', trigger: 'change' }
+                    ],
+                    <# } #>
+                },
+                //主表弹出框的数据模型
+                modalData: {
+                    dictName:"",
+                    dictCode:"",
+                    description:""
+                },
+            <#}#>
             }
         },
         components: {
@@ -165,9 +233,8 @@
                                         },
                                  <#}#>
                                  <#if(c.TypeName.ToString()=="datetime") {#>
-                                        format<#=ToCamel_FirstUpper(c.ColumnName) #> (value) {
-                                             let   <#=ToCamel_FirstUpper(c.ColumnName) #>=  formatDate(value)
-                                             return   <#=ToCamel_FirstUpper(c.ColumnName) #>
+                                        format<#=ToCamel_FirstUpper(c.ColumnName) #> (value) {                                             
+                                             return    formatDate(value)
                                          },
                                  <#}#>
                     <#}}#>
@@ -184,6 +251,65 @@
                     this.data = res.data.rows;
                 })
             },
+        <# if(isEditable()){#>
+            handleSubmit () {
+                if(this.modalData.id){
+                    Api.editTableData(this.modalData).then(res => {
+                        this.$Message.success(res.msg);
+                        this.$refs.form.show = false;
+                        this.getData ();
+                    })
+                }else {
+                    Api.addTableData(this.modalData).then(res => {
+                        this.$Message.success(res.msg);
+                        this.$refs.form.show = false;
+                        this.getData ();
+                    })
+                }
+
+            },
+            add(){
+                this.$refs.form.show = true;
+                this.$refs.form.resetFields();
+            },
+            edit (row) {
+                this.$refs.form.show = true;
+                Api.getTableDetailById(row.id).then(res => {
+                    this.modalData=res.data;
+                })
+            },
+            del (row) {
+                this.$Modal.confirm({
+                    title: '二次确认提示',
+                    content: '<p>确定删除此操作吗</p>',
+                    onOk: () => {
+                        Api.delTableData(row.id).then(res => {
+                            this.$Message.success(res.msg);
+                            this.getData ();
+                        })
+                    }
+                });
+            },
+            //批量删除
+            deleteData () {
+                let idArr= [];
+                for(let data of this.$refs.table.selection){
+                    idArr.push(data.id);
+                }
+                this.$Modal.confirm({
+                    title: '二次确认提示',
+                    content: '<p>确定批量删除选中项此吗</p>',
+                    onOk: () => {
+                        Api.deleteBatch({ids:idArr}).then(res => {
+                            this.$Message.success(res.msg);
+                            this.getData ();
+                        })
+                    }
+                });
+
+            },
+            <#}#>
+
             exportFile () {
                 Api.exportExcel({all:true}).then(res => {
                     window.location.href = Api.download + res.data.filePath;
@@ -202,6 +328,11 @@
 
 
 <#+
+
+
+
+
+
 //convert to camel
  private string ToCamel(string item)
         {
@@ -228,5 +359,30 @@
            item= item.Remove(1).ToUpper() + item.Substring(1);
             return item;
         }
+
+
+
+//增删查改： 0 为不能， 1 为能。
+private bool isEditable()
+{
+    int isEditable=1;
+    if(isEditable==1) return true;
+    return false;
+}
+
+
+
+
+// you can set  whether you has a detail Table or not. Default is true, and will create the detail table.
+// if no detail table ,please set to false;
+
+private bool hasDetail()
+{
+    int hasDetail=1;
+    if(hasDetail==1) return true;
+    return false;
+}
+
+
 
 #>
