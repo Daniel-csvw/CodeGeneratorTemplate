@@ -1,8 +1,7 @@
 ﻿<#@ template language="c#" HostSpecific="True" #>
 <#@ output extension= ".aspx" #>
 <#
-	TableHost host = (TableHost)(Host);
-    
+	TableHost host = (TableHost)(Host);    
 #>
 	 
 <template>
@@ -315,7 +314,16 @@
             <#}#>
 
             exportFile () {
-                Api.exportExcel({all:true}).then(res => {
+                let data={
+                    "entity":{
+                    },
+                    "option":{
+                        "all":true,
+                        "autoWidth":true,
+                        "progressKey":"string"
+                    }
+                }
+                Api.exportExcel(data).then(res => {
                     window.location.href = Api.download + res.data.filePath;
                 })
             },
