@@ -1,5 +1,5 @@
 ﻿<#@ template language="c#" HostSpecific="True" #>
-<#@ output extension= ".aspx" #>
+<#@ output extension= ".vue" #>
 <#
 	TableHost host = (TableHost)(Host);    
 #>
