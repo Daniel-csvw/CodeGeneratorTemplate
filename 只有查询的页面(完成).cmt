@@ -64,7 +64,7 @@
                 <#}#>
                 <# foreach (ColumnInfo c in host.Fieldlist) {
   				    if (!c.IsPrimaryKey && !c.IsIdentity) {
-  				        if(c.ColumnName.Contains("is_") ||  c.TypeName.ToString()=="datetime") {#>
+  				        if(c.ColumnName.Contains("is_") ||  c.TypeName.ToString()=="datetime" || c.TypeName.ToString()=="date") {#>
   				          <span slot="<#=ToCamel(c.ColumnName) #>" slot-scope="{ row, index }">
                   	    	  {{row.<#=ToCamel(c.ColumnName) #> | format<#=ToCamel_FirstUpper(c.ColumnName) #>}}
               		     </span>
@@ -149,7 +149,7 @@
                         minwidth: 120,
                         sortable: true,
                         resizable: true,
-                        <# if (c.TypeName.ToString()=="datetime" || c.ColumnName.Contains("is_")) { #>
+                        <# if (c.TypeName.ToString()=="datetime" || c.TypeName.ToString()=="date" || c.ColumnName.Contains("is_")) { #>
                         slot:'<#=ToCamel(c.ColumnName) #>',//当用filters时，需要定义一个slot(bool类型，日期格式)
                         <#}#>
 
@@ -197,7 +197,7 @@
                       <#}#>
                 },
                 query: {
-                    col: 6,
+                    col: 4,
                     labelWidth: 90
                 },
             <# if(isEditable()){#>
@@ -237,7 +237,7 @@
                                             return <#=ToCamel_FirstUpper(c.ColumnName) #>;
                                         },
                                  <#}#>
-                                 <#if(c.TypeName.ToString()=="datetime") {#>
+                                 <#if(c.TypeName.ToString()=="datetime" || c.TypeName.ToString()=="date") {#>
                                         format<#=ToCamel_FirstUpper(c.ColumnName) #> (value) {                                             
                                              return    formatDate(value)
                                          },
