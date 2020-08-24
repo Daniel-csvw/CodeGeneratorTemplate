@@ -14,7 +14,7 @@
 		  <# if (!c.IsPrimaryKey && !c.IsIdentity) { #>
 			<bingo-grid-item>
                 <FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>">
-                      <Input v-model="queryData.<#=ToCamel(c.ColumnName) #>" placeholder="请输入" element-id="<#=ToCamel(c.ColumnName) #>" @keydown.enter.native="getData"/>
+                      <Input v-model.trim="queryData.<#=ToCamel(c.ColumnName) #>" placeholder="请输入" element-id="<#=ToCamel(c.ColumnName) #>" @keydown.enter.native="getData"/>
                 </FormItem>
             </bingo-grid-item>	
            <# } #> 
@@ -63,7 +63,7 @@
                   <# if (!c.IsPrimaryKey && !c.IsIdentity) { #>
  <bingo-grid-item>
                     <FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>"  prop="<#=ToCamel(c.ColumnName) #>">
-                        <Input v-model="modalData.<#=ToCamel(c.ColumnName) #>" 
+                        <Input v-model.trim="modalData.<#=ToCamel(c.ColumnName) #>" 
                                placeholder="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" />
                                 <!-- :autosize="{maxRows:5,minRows: 5}" type ='textarea' style="height:100px"-->                          
                     </FormItem>  
@@ -244,7 +244,7 @@
           
         },
         mounted () {
-            this.getData();
+            
         }
     }
 </script>
@@ -277,7 +277,7 @@
   // if no detail table ,please set to false;
   private bool hasDetail()
   {
-     int hasDetail=1;
+     int hasDetail=0;
      if(hasDetail==1) return true;     
      return false;
   }
