@@ -7,5 +7,3 @@
 http://www.maticsoft.com/yuming.html
 
 
-另外一个链接: 带mysql补丁
-https://files-cdn.cnblogs.com/files/lhuser/%E5%8A%A8%E8%BD%AF%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90%E5%99%A8%EF%BC%88%E5%90%ABmysql%E8%A1%A5%E4%B8%81%EF%BC%89.rar
