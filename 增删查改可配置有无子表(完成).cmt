@@ -41,16 +41,16 @@
                 <Button type='primary' customIcon='iconfont icondaochu' @click="exportFile" >导出</Button>
                 <span slot="action" slot-scope="{ row, index }">
                     <bingo-action-drop>
-                        <a @click="edit (row)">{{$t('organization.page.buttons.edit')}}</a>
+                        <a @click="edit (row)">{{$t('<#=GJHModule#>.page.buttons.edit')}}</a>
                         <span slot="list">
                             <DropdownItem>
-                                <span @click="edit (row)">{{$t('organization.page.buttons.edit')}}</span>
+                                <span @click="edit (row)">{{$t('<#=GJHModule#>.page.buttons.edit')}}</span>
                             </DropdownItem>                        
                             <# if (hasDetail()) { #><DropdownItem>
                                 <span @click="editDetailItem(row)">打开子表记录</span>
                             </DropdownItem><# } #>                          
                             <DropdownItem>
-                                <span @click="delOne (row)">{{$t('organization.page.buttons.delete')}}</span>
+                                <span @click="delOne (row)">{{$t('<#=GJHModule#>.page.buttons.delete')}}</span>
                             </DropdownItem>
                          </span>
                     </bingo-action-drop>
@@ -60,7 +60,7 @@
                 </span>
             </bingo-table>
              <!-- 主表修改弹出框-->
-             <bingo-modal-edit :title="$t('todo title')" :width="800" v-model.trim="showForm"
+             <bingo-modal-edit :title="$t('')" :width="800" v-model.trim="showForm"
                               @on-save="handleSubmit(1)" @on-save-cancel="handleSubmit(0)" :rows="3">
                 <bingo-form ref="form" :col=1 :rules="rules" :data="modalData" :button="false" :labelWidth="120">
 <# foreach (ColumnInfo c in host.Fieldlist) { #>
@@ -90,7 +90,7 @@
     import bingoModalEdit from '@/components/bingo-modal/bingo-modal-edit';
     import bingoForm from '@/components/bingo-query/bingo-form'; 
 
-    // import * as Api from '@/api/masterdata/projectinfo/tmProject';
+    import * as Api from '@/api/<#=ApiServiceName #>/<#=ApiModuleName #>/<#=ApiFileName#>'
     
     export default {
         data () {
@@ -104,7 +104,7 @@
            <# } #>
           		 },
                 fullFlag: false,
-
+                selectData: [],
                 columns: [ 
                		
                     {
@@ -158,7 +158,7 @@
                  rules: {                    
                      <# foreach (ColumnInfo c in host.Fieldlist) { #>                    
                        <#=ToCamel(c.ColumnName) #>: [
-                          { required: true, message: $t('organization.validate.emptyCheck'), trigger: 'blur' }
+                          { required: true, message: $t('<#=GJHModule#>.validate.emptyCheck'), trigger: 'blur' }
                        ],                    
                       <# } #>
 },
@@ -168,6 +168,7 @@
                        <#=ToCamel(c.ColumnName) #>:'',                    
                     <# } #>
                 },
+                showForm: false,
 
             }
         },
@@ -183,7 +184,7 @@
                 params = {...params, ...{deleteFlag: 0}};
                 
                 // 这里改成自己的api method
-                Api.page(params).then(res => {
+                Api.Page(params).then(res => {
                     this.$refs.table.setLoading();
                     this.model.pageSetting.pageTotal = res.data.total;
                     this.data = res.data.rows;
@@ -196,8 +197,8 @@
                 this.$refs.form.$refs.form.validate((valid) => {
                     if (valid) {
                         if (!this.modalData.id) { //save
-                            Api.save(this.modalData).then(res1 => {
-                                this.$Message.success($t('organization.notice.success.save'));
+                            Api.Insert(this.modalData).then(res1 => {
+                                this.$Message.success($t('<#=GJHModule#>.notice.success.save'));
                                 this.modalData = res1.data;
                                 this.getData();
                                 this.showForm = !!tag;
@@ -205,8 +206,8 @@
                                 console.log('err' + err)
                             });
                         } else { //update
-                            Api.update(this.modalData).then(res1 => {
-                                this.$Message.success($t('organization.notice.success.save'));
+                            Api.Update(this.modalData).then(res1 => {
+                                this.$Message.success($t('<#=GJHModule#>.notice.success.save'));
                                 this.modalData = res1.data;
                                 this.getData();
                                 this.showForm = !!tag;
@@ -215,7 +216,7 @@
                             });
                         }
                     } else {
-                        this.$BMessage.warning($t('organization.notice.warning.completeCheck'));
+                        this.$BMessage.warning($t('<#=GJHModule#>.notice.warning.completeCheck'));
                     }
                 });
             },
@@ -232,11 +233,11 @@
             },
             del(idArr) {
                 this.$Modal.confirm({
-                    title: $t('organization.reminder.confirm'),
-                    content: $t('organization.reminder.delete'),
+                    title: $t('<#=GJHModule#>.reminder.confirm'),
+                    content: $t('<#=GJHModule#>.reminder.delete'),
                     onOk: () => {
-                        Api.del(idArr).then(res => {
-                            this.$Message.success($t('organization.notice.success.delete'));
+                        Api.Delete(idArr).then(res => {
+                            this.$Message.success($t('<#=GJHModule#>.notice.success.delete'));
                             this.getData();
                         })
                     }
@@ -248,7 +249,7 @@
             deleteBatch() { //批量删除
                 let idArr = this.selectData.map(x => x.id);
                 if (idArr.length < 1) {
-                    this.$BMessage.warning($t('organization.notice.warning.selectCheck')); //(res.msg);
+                    this.$BMessage.warning($t('<#=GJHModule#>.notice.warning.selectCheck')); //(res.msg);
                     return;
                 }
                 this.del(idArr);
@@ -261,7 +262,7 @@
                 };
             },
             exportFile() {
-                Api.exportExcel({all: true}).then(res => {
+                Api.Excel({all: true}).then(res => {
                     window.location.href = Api.download + res.data.filePath;
                 })
             },
@@ -275,7 +276,7 @@
 
 </style>
 
-
+ 
 
 <#+
   // fun1: this fun convert the column name to camel
@@ -309,5 +310,27 @@
      if(hasDetail==1) return true;  
      return false;
   }
+  
+  
+   //下面三个是定义api路径的
+   
+   //Api 微服务名目录
+   private string ApiServiceName="master-data";    
+   //Api模块
+   private string ApiModuleName="functionapp";    
+   // Api文件名
+   private string ApiFileName="functionapp";  
+   
+   
+   
+   
+   //国际化的模块目录名   
+   private string GJHModule ="masterdata"; 
+   
+   
+   
+   
+   
+ 
 
 #>
