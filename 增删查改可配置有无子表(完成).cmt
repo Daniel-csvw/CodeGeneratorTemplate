@@ -6,14 +6,16 @@
 #>
 	 
 <template>
-    <div class="content-inner">
+    <div class="content-inner" v-getAuths="[getAuths,'/<#=ApiServiceName#>/<#=ApiFileName#>/list']">
+     <!--<div class="content-inner" v-getAuths="[getAuths,'/master-data/function-app/list']">  注意这个是后台的路由。检查下-->
+
         <Card>
              <!-- 查询框-->
             <bingo-query ref="query" type="modal" :col="query.col" :labelWidth="query.labelWidth" @on-submit="getData" @on-reset="getData" :data="queryData" >	
  <# foreach (ColumnInfo c in host.Fieldlist) { #>
 		  <# if (!c.IsPrimaryKey && !c.IsIdentity) { #>
 			<bingo-grid-item>
-                <FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>">
+                <FormItem :label="$t('<#=GJHSerivce#>.page.<#=GJHModule#>.<#= ToCamel(c.ColumnName) #>')" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>">
                       <Input v-model.trim="queryData.<#=ToCamel(c.ColumnName) #>"  element-id="<#=ToCamel(c.ColumnName) #>" />
                 </FormItem>
             </bingo-grid-item>	
@@ -35,24 +37,24 @@
                     :border="model.border"
                     :page="model.page"
                     :pageSetting="model.pageSetting"
-                    :showAllButton="model.showAllButton"
+                    :showNew="showNew"
+                    :showDelete="showDelete"
+
                    
             >
-                <Button type='primary' customIcon='iconfont icondaochu' @click="exportFile" >导出</Button>
+                 <!--<Button type='primary' customIcon='iconfont icondaochu' @click="exportFile" >导出</Button> -->
                 <span slot="action" slot-scope="{ row, index }">
-                    <bingo-action-drop>
-                        <a @click="edit (row)">{{$t('<#=GJHModule#>.page.buttons.edit')}}</a>
-                        <span slot="list">
+                    <bingo-action-drop>  
+                        <a v-if="showEdit" @click="edit (row)">{{$t('<#=GJHSerivce#>.page.buttons.edit')}}</a>
+                        <a v-else   @click="edit (row)">{{$t('<#=GJHSerivce#>.page.buttons.view')}}</a>
+                        <span slot="list" v-if="showEdit">
                             <DropdownItem>
-                                <span @click="edit (row)">{{$t('<#=GJHModule#>.page.buttons.edit')}}</span>
-                            </DropdownItem>                        
-                            <# if (hasDetail()) { #><DropdownItem>
-                                <span @click="editDetailItem(row)">打开子表记录</span>
-                            </DropdownItem><# } #>                          
-                            <DropdownItem>
-                                <span @click="delOne (row)">{{$t('<#=GJHModule#>.page.buttons.delete')}}</span>
+                                <span  @click="edit (row)">{{$t('<#=GJHSerivce#>.page.buttons.edit')}}</span>
                             </DropdownItem>
-                         </span>
+                            <DropdownItem>
+                                <span  @click="delOne (row)">{{$t('<#=GJHSerivce#>.page.buttons.delete')}}</span>
+                            </DropdownItem>
+                         </span>   
                     </bingo-action-drop>
                 </span>
                 <span slot="gesch" slot-scope="{ row, index }">
@@ -60,21 +62,36 @@
                 </span>
             </bingo-table>
              <!-- 主表修改弹出框-->
-             <bingo-modal-edit :title="$t('')" :width="800" v-model.trim="showForm"
+             <bingo-modal-edit   :showToolbar= "showEdit"  :title="$t('')" :width="800" v-model.trim="showForm"
                               @on-save="handleSubmit(1)" @on-save-cancel="handleSubmit(0)" :rows="3">
                 <bingo-form ref="form" :col=1 :rules="rules" :data="modalData" :button="false" :labelWidth="120">
 <# foreach (ColumnInfo c in host.Fieldlist) { #>
                   <# if (!c.IsPrimaryKey && !c.IsIdentity) { #>
  <bingo-grid-item>
-                    <FormItem label="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>"  prop="<#=ToCamel(c.ColumnName) #>">
-                        <Input v-model.trim="modalData.<#=ToCamel(c.ColumnName) #>" 
-                               placeholder="<#= c.Description == "" ? ToCamel(c.ColumnName) : c.Description #>" />
-                                <!-- :autosize="{maxRows:5,minRows: 5}" type ='textarea' style="height:100px"-->                          
+                    <FormItem :label="$t('<#=GJHSerivce#>.page.<#=GJHModule#>.<#= ToCamel(c.ColumnName) #>')"  prop="<#=ToCamel(c.ColumnName) #>">
+                        <Input v-model.trim="modalData.<#=ToCamel(c.ColumnName) #>">                                                    
                     </FormItem>  
                 </bingo-grid-item>
                 <# } #>
 
- <# } #>                
+ <# } #>     
+ 
+ 
+                    <!--上传图片功能-->
+                    <bingo-grid-item   v-if="webUpload.showImg">
+                        <FormItem :label="$t('<#=GJHSerivce#>.page.<#=GJHModule#>.pic')"  >
+                            <bingo-webupload
+                                    ref="webupload"
+                                    :serveOption="webUpload.serveOptionSign"
+                                    :multiple="true"
+                                    :showFileButton="false"
+                                    :authDown="showEdit"
+                                    :authUpload="showEdit"
+                                    :authDelete="showDelete"
+                            ></bingo-webupload>
+                        </FormItem>
+                    </bingo-grid-item>
+
            </bingo-form>
             </bingo-modal-edit>
             
@@ -89,12 +106,18 @@
     import bingoActionDrop from '@/components/bingo-action-drop';
     import bingoModalEdit from '@/components/bingo-modal/bingo-modal-edit';
     import bingoForm from '@/components/bingo-query/bingo-form'; 
+    import bingoWebupload from "@/components/bingo-webupload";
+
 
     import * as Api from '@/api/<#=ApiServiceName #>/<#=ApiModuleName #>/<#=ApiFileName#>'
     
     export default {
         data () {
             return {
+                authList: [],
+                showDelete:false,
+                showNew :false,
+                showEdit:false,
                 
                 loading:false,               
                 //输入框的查询值
@@ -112,7 +135,7 @@
                         width: 60,
                         align: 'center',
                         fixed: 'left',
-                        title: $t('masterdata.page.common.index')
+                        title: $t('<#=GJHSerivce#>.page.common.index')
                     },
                     {
                         type: 'selection',
@@ -121,7 +144,7 @@
                         fixed: 'left'
                     },
                     {
-                        title: $t('masterdata.page.common.operate'),
+                        title: $t('<#=GJHSerivce#>.page.common.operate'),
                         key: 'action',
                         width: 100,
                         slot: 'action',
@@ -130,8 +153,8 @@
                     },
 <# foreach (ColumnInfo c in host.Fieldlist) {                    
   if (!c.IsPrimaryKey && !c.IsIdentity) { #>                      
-                    {
-                        title: '<#=c.Description #>',
+                    {                      
+                        title:$t('<#=GJHSerivce#>.page.<#=GJHModule#>.<#=ToCamel(c.ColumnName) #>'),
                         key: '<#=ToCamel(c.ColumnName) #>',
                         minwidth: 120
                     },<# }  } #>
@@ -158,7 +181,7 @@
                  rules: {                    
                      <# foreach (ColumnInfo c in host.Fieldlist) { #>                    
                        <#=ToCamel(c.ColumnName) #>: [
-                          { required: true, message: $t('<#=GJHModule#>.validate.emptyCheck'), trigger: 'blur' }
+                          { required: true, message: $t('<#=GJHSerivce#>.validate.emptyCheck'), trigger: 'blur' }
                        ],                    
                       <# } #>
 },
@@ -169,14 +192,47 @@
                     <# } #>
                 },
                 showForm: false,
+                
+                //上传图片控件
+                webUpload:{
+                    showImg: false,
+                    folderName: "",
+                    serveOptionSign: {
+                        folderId: "", //文件夹名 'measure@folder'+'<'+this.measure.stateId+'>'
+                        name: "function_app",
+                        parentId: "e0001",
+                        rootId: "0001",
+                        systemId: "organization",
+                        busId: "",
+                        busTable: "",
+                        busTag: ""
+                    }
+                },
+
 
             }
         },
         components: {
-            bingoTable, bingoQuery, bingoForm, bingoModalEdit, bingoGridItem, bingoActionDrop
+             bingoWebupload,bingoTable, bingoQuery, bingoForm, bingoModalEdit, bingoGridItem, bingoActionDrop
+
         },
 
         methods: {
+            getAuths(data) {
+                this.authList = data
+                for (let i = 0; i < data.length; i++) {
+
+                    if (data[i]['new'] != undefined && data[i]['new'] == 2) {
+                        this.showNew = true;
+                    }
+                    if (data[i]['delete'] != undefined && data[i]['delete'] == 2) {
+                        this.showDelete = true;
+                    }
+                    if (data[i]['edit'] != undefined && data[i]['edit'] == 2) {
+                        this.showEdit = true;
+                    }
+                }
+            },
             getData() {
                 this.selectData = [];
                 this.$refs.table.setLoading();
@@ -193,30 +249,63 @@
             handleSelectionChange(items) {
                 this.selectData = items;
             },
-            handleSubmit(tag) {
+            
+            showWebUpload(){
+                this.webUpload.showImg = true;
+                this.webUpload.serveOptionSign = {};
+                this.webUpload.folderName = this.modalData.id;
+                this.webUpload.serveOptionSign.folderId ="<#=GJHSerivce#>@functionapp-folder-funapp-" + this.webUpload.folderName;
+                this.webUpload.serveOptionSign.busId =  this.webUpload.folderName;
+                this.webUpload.serveOptionSign.name = "funapp";
+                this.webUpload.serveOptionSign.parentId = "e0001";
+                this.webUpload.serveOptionSign.rootId = "0001";
+                this.webUpload.serveOptionSign.systemId = "organization";
+                this.webUpload.serveOptionSign.busTable = "funapp";
+                this.webUpload.serveOptionSign.busTag = "funapp";
+            },
+            
+            
+            //保存 /保存关闭              
+            handleSubmit(show) {
                 this.$refs.form.$refs.form.validate((valid) => {
                     if (valid) {
                         if (!this.modalData.id) { //save
-                            Api.Insert(this.modalData).then(res1 => {
-                                this.$Message.success($t('<#=GJHModule#>.notice.success.save'));
-                                this.modalData = res1.data;
+                            Api.Insert(this.modalData).then(res => {
+                                this.$Message.success($t('<#=GJHSerivce#>.notice.success.save'));
+                                this.modalData = res.data;
                                 this.getData();
-                                this.showForm = !!tag;
+                                this.showForm = show;
+                                
+                                this.webUpload.showImg = true;
+                                this.webUpload.serveOptionSign = {};
+                                this.webUpload.folderName = this.modalData.id;
+                                this.webUpload.serveOptionSign.folderId ="<#=GJHSerivce#>@<#=ApiFileName#>-folder-funapp-" + this.webUpload.folderName;
+                                this.webUpload.serveOptionSign.busId =  this.webUpload.folderName;
+                                this.webUpload.serveOptionSign.name = "<#=ApiFileName#>";
+                                this.webUpload.serveOptionSign.parentId = "e0001";
+                                this.webUpload.serveOptionSign.rootId = "0001";
+                                this.webUpload.serveOptionSign.systemId = "organization";
+                                this.webUpload.serveOptionSign.busTable = "<#=ApiFileName#>";
+                                this.webUpload.serveOptionSign.busTag = "<#=ApiFileName#>>";
+
+                                
                             }).catch(err => {
                                 console.log('err' + err)
                             });
                         } else { //update
                             Api.Update(this.modalData).then(res1 => {
-                                this.$Message.success($t('<#=GJHModule#>.notice.success.save'));
+                                this.$Message.success($t('<#=GJHSerivce#>.notice.success.save'));
                                 this.modalData = res1.data;
                                 this.getData();
-                                this.showForm = !!tag;
+                                this.showForm = show;
+                                this.webUpload.showImg = false;
+
                             }).catch(err => {
                                 console.log('err' + err); // 异常情况
                             });
                         }
                     } else {
-                        this.$BMessage.warning($t('<#=GJHModule#>.notice.warning.completeCheck'));
+                        this.$BMessage.warning($t('<#=GJHSerivce#>.notice.warning.completeCheck'));
                     }
                 });
             },
@@ -229,15 +318,34 @@
                 this.showForm = true;
                 Api.getById(row.id).then(res => {
                     this.modalData = res.data;
+                    
+                                        //初始化图片
+                    this.$nextTick(()=>{
+                        this.webUpload.showImg = true;
+                        this.webUpload.serveOptionSign = {};
+                        this.webUpload.folderName = this.modalData.id;
+                        this.webUpload.serveOptionSign.folderId ="<#=GJHSerivce#>@<#=ApiFileName#>-folder-funapp-" + this.webUpload.folderName;
+                        this.webUpload.serveOptionSign.busId =  this.webUpload.folderName;
+                        this.webUpload.serveOptionSign.name = "funapp";
+                        this.webUpload.serveOptionSign.parentId = "e0001";
+                        this.webUpload.serveOptionSign.rootId = "0001";
+                        this.webUpload.serveOptionSign.systemId = "organization";
+                        this.webUpload.serveOptionSign.busTable = "<#=ApiFileName#>";
+                        this.webUpload.serveOptionSign.busTag = "<#=ApiFileName#>";
+                    });
+
+                    
+                    
                 })
             },
             del(idArr) {
                 this.$Modal.confirm({
-                    title: $t('<#=GJHModule#>.reminder.confirm'),
-                    content: $t('<#=GJHModule#>.reminder.delete'),
+                    title: $t('<#=GJHSerivce#>.reminder.confirm'),
+                    content: $t('<#=GJHSerivce#>.reminder.delete'),
                     onOk: () => {
-                        Api.Delete(idArr).then(res => {
-                            this.$Message.success($t('<#=GJHModule#>.notice.success.delete'));
+                        Api.DeleteBatch(idArr).then(res => {
+
+                            this.$Message.success($t('<#=GJHSerivce#>.notice.success.delete'));
                             this.getData();
                         })
                     }
@@ -249,7 +357,7 @@
             deleteBatch() { //批量删除
                 let idArr = this.selectData.map(x => x.id);
                 if (idArr.length < 1) {
-                    this.$BMessage.warning($t('<#=GJHModule#>.notice.warning.selectCheck')); //(res.msg);
+                    this.$BMessage.warning($t('<#=GJHSerivce#>.notice.warning.selectCheck')); //(res.msg);
                     return;
                 }
                 this.del(idArr);
@@ -260,6 +368,8 @@
                        <#=ToCamel(c.ColumnName) #>:'',                    
                     <# } #>
                 };
+               this.webUpload.showImg = false;
+
             },
             exportFile() {
                 Api.Excel({all: true}).then(res => {
@@ -324,11 +434,16 @@
    
    
    
+   //国际化的微服务目录名   
+   private string GJHSerivce ="masterdata"; 
+   
    //国际化的模块目录名   
-   private string GJHModule ="masterdata"; 
+   private string GJHModule ="functionApp"; 
+   
+  
    
    
-   //删除标志位的属性名(不是数据库字段名), 一般为驼峰
+   //删除标志位的属性名(不是数据库字段名,是java类中的属性), 一般为驼峰
     private string DeleteFlag ="isDelete"; 
    
    
