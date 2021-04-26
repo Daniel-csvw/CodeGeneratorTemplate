@@ -51,6 +51,9 @@
                             <DropdownItem>
                                 <span  @click="edit (row)">{{$t('<#=GJHSerivce#>.page.buttons.edit')}}</span>
                             </DropdownItem>
+							<# if (hasDetail()) { #><DropdownItem>
+                                <span @click="editDetailItem(row)">打开子表记录</span>
+                            </DropdownItem><# } #>  
                             <DropdownItem>
                                 <span  @click="delOne (row)">{{$t('<#=GJHSerivce#>.page.buttons.delete')}}</span>
                             </DropdownItem>
