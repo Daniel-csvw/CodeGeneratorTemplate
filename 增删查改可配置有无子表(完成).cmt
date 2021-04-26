@@ -51,9 +51,11 @@
                             <DropdownItem>
                                 <span  @click="edit (row)">{{$t('<#=GJHSerivce#>.page.buttons.edit')}}</span>
                             </DropdownItem>
-							<# if (hasDetail()) { #><DropdownItem>
+							<# if (hasDetail()) { #>
+							<DropdownItem>
                                 <span @click="editDetailItem(row)">打开子表记录</span>
-                            </DropdownItem><# } #>  
+                            </DropdownItem>
+							<# } #>  
                             <DropdownItem>
                                 <span  @click="delOne (row)">{{$t('<#=GJHSerivce#>.page.buttons.delete')}}</span>
                             </DropdownItem>
@@ -78,8 +80,8 @@
                 <# } #>
 
  <# } #>     
- 
- 
+                   <!-- 是否有上传图片功能--> 
+                   <# if (hasAttachment()) { #>
                     <!--上传图片功能-->
                     <bingo-grid-item   v-if="webUpload.showImg">
                         <FormItem :label="$t('<#=GJHSerivce#>.page.<#=GJHModule#>.pic')"  >
@@ -95,6 +97,12 @@
                         </FormItem>
                     </bingo-grid-item>
 
+                   <# } #>  
+                    
+					
+					
+					
+
            </bingo-form>
             </bingo-modal-edit>
             
@@ -109,7 +117,12 @@
     import bingoActionDrop from '@/components/bingo-action-drop';
     import bingoModalEdit from '@/components/bingo-modal/bingo-modal-edit';
     import bingoForm from '@/components/bingo-query/bingo-form'; 
+	
+	<!-- 是否有上传图片功能--> 
+    <# if (hasAttachment()) { #>
     import bingoWebupload from "@/components/bingo-webupload";
+    <# } #>  
+  
 
 
     import * as Api from '@/api/<#=ApiServiceName #>/<#=ApiModuleName #>/<#=ApiFileName#>'
@@ -196,6 +209,8 @@
                 },
                 showForm: false,
                 
+			   <!-- 是否有上传图片功能--> 
+               <# if (hasAttachment()) { #>  
                 //上传图片控件
                 webUpload:{
                     showImg: false,
@@ -211,12 +226,15 @@
                         busTag: ""
                     }
                 },
-
+               <# } #> 
 
             }
         },
         components: {
-             bingoWebupload,bingoTable, bingoQuery, bingoForm, bingoModalEdit, bingoGridItem, bingoActionDrop
+             <# if (hasAttachment()) { #>
+			 bingoWebupload,
+			 <# } #>  
+			 bingoTable, bingoQuery, bingoForm, bingoModalEdit, bingoGridItem, bingoActionDrop
 
         },
 
@@ -252,7 +270,9 @@
             handleSelectionChange(items) {
                 this.selectData = items;
             },
-            
+			
+            <!-- 是否有上传图片功能--> 
+        <# if (hasAttachment()) { #>
             showWebUpload(){
                 this.webUpload.showImg = true;
                 this.webUpload.serveOptionSign = {};
@@ -266,7 +286,7 @@
                 this.webUpload.serveOptionSign.busTable = "funapp";
                 this.webUpload.serveOptionSign.busTag = "funapp";
             },
-            
+        <# } #>  
             
             //保存 /保存关闭              
             handleSubmit(show) {
@@ -278,7 +298,7 @@
                                 this.modalData = res.data;
                                 this.getData();
                                 this.showForm = show;
-                                
+                             <# if (hasAttachment()) { #>    
                                 this.webUpload.showImg = true;
                                 this.webUpload.serveOptionSign = {};
                                 this.webUpload.folderName = this.modalData.id;
@@ -290,7 +310,7 @@
                                 this.webUpload.serveOptionSign.systemId = "organization";
                                 this.webUpload.serveOptionSign.busTable = "<#=ApiFileName#>";
                                 this.webUpload.serveOptionSign.busTag = "<#=ApiFileName#>>";
-
+                             <# } #> 
                                 
                             }).catch(err => {
                                 console.log('err' + err)
@@ -301,8 +321,9 @@
                                 this.modalData = res1.data;
                                 this.getData();
                                 this.showForm = show;
+							 <# if (hasAttachment()) { #>    
                                 this.webUpload.showImg = false;
-
+                             <# } #> 
                             }).catch(err => {
                                 console.log('err' + err); // 异常情况
                             });
@@ -322,7 +343,8 @@
                 Api.getById(row.id).then(res => {
                     this.modalData = res.data;
                     
-                                        //初始化图片
+					<# if (hasAttachment()) { #> 
+                    //初始化图片
                     this.$nextTick(()=>{
                         this.webUpload.showImg = true;
                         this.webUpload.serveOptionSign = {};
@@ -336,7 +358,7 @@
                         this.webUpload.serveOptionSign.busTable = "<#=ApiFileName#>";
                         this.webUpload.serveOptionSign.busTag = "<#=ApiFileName#>";
                     });
-
+                    <# } #> 
                     
                     
                 })
@@ -392,8 +414,8 @@
  
 
 <#+
-  // fun1: this fun convert the column name to camel
- private string ToCamel(string item)
+    //驼峰处理
+   private string ToCamel(string item)
         {
              while (item.IndexOf('_') >= 0)
             {
@@ -409,23 +431,27 @@
       
       
       
-  // fun2: 
-  // you can set  whether you has a detail Table or not. Default is true, and will create the detail table.
-  // if no detail table ,please set to false;
+   
+  //是否有细表 0 没有，1，有
   private bool hasDetail()
-  {
-     //has no detail table
-     int hasDetail= 0;
-     
-     
-     // has table
-     //int hasDetail= 1;
+  {     
+     int hasDetail= 0;  //改这里
      if(hasDetail==1) return true;  
      return false;
   }
   
   
-   //下面三个是定义api路径的
+  //是否有附件 0 没有，1，有
+  private bool hasAttachment()
+  {     
+     int hasAttachment= 0;  //改这里
+     if(hasAttachment==1) return true;  
+     return false;
+  }
+  
+  
+  
+   // api路径配置
    
    //Api 微服务名目录
    private string ApiServiceName="master-data";    
@@ -435,7 +461,7 @@
    private string ApiFileName="functionapp";  
    
    
-   
+   //国际化配置
    
    //国际化的微服务目录名   
    private string GJHSerivce ="masterdata"; 
