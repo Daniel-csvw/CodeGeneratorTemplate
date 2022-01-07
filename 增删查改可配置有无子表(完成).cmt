@@ -1,5 +1,5 @@
 ﻿<#@ template language="c#" HostSpecific="True" #>
-<#@ output extension= ".aspx" #>
+<#@ output extension= ".vue" #>
 <#
 	TableHost host = (TableHost)(Host);			
 	
@@ -74,14 +74,15 @@
                   <# if (!c.IsPrimaryKey && !c.IsIdentity) { #>
  <bingo-grid-item>
                     <FormItem :label="$t('<#=GJHSerivce#>.page.<#=GJHModule#>.<#= ToCamel(c.ColumnName) #>')"  prop="<#=ToCamel(c.ColumnName) #>">
-                        <Input v-model.trim="modalData.<#=ToCamel(c.ColumnName) #>">                                                    
+                        <Input v-model.trim="modalData.<#=ToCamel(c.ColumnName) #>" maxlength="50" />                                                    
                     </FormItem>  
                 </bingo-grid-item>
                 <# } #>
 
  <# } #>     
-                   <!-- 是否有上传图片功能--> 
+                 
                    <# if (hasAttachment()) { #>
+                     <!-- 是否有上传图片功能--> 
                     <!--上传图片功能-->
                     <bingo-grid-item   v-if="webUpload.showImg">
                         <FormItem :label="$t('<#=GJHSerivce#>.page.<#=GJHModule#>.pic')"  >
@@ -118,7 +119,7 @@
     import bingoModalEdit from '@/components/bingo-modal/bingo-modal-edit';
     import bingoForm from '@/components/bingo-query/bingo-form'; 
 	
-	<!-- 是否有上传图片功能--> 
+
     <# if (hasAttachment()) { #>
     import bingoWebupload from "@/components/bingo-webupload";
     <# } #>  
@@ -209,7 +210,7 @@
                 },
                 showForm: false,
                 
-			   <!-- 是否有上传图片功能--> 
+			 
                <# if (hasAttachment()) { #>  
                 //上传图片控件
                 webUpload:{
@@ -271,7 +272,7 @@
                 this.selectData = items;
             },
 			
-            <!-- 是否有上传图片功能--> 
+          
         <# if (hasAttachment()) { #>
             showWebUpload(){
                 this.webUpload.showImg = true;
@@ -393,7 +394,11 @@
                        <#=ToCamel(c.ColumnName) #>:'',                    
                     <# } #>
                 };
-               this.webUpload.showImg = false;
+                
+               <# if (hasAttachment()) { #>  
+                 	 this.webUpload.showImg = false;             
+               <# } #> 
+              
 
             },
             exportFile() {
@@ -454,20 +459,20 @@
    // api路径配置
    
    //Api 微服务名目录
-   private string ApiServiceName="master-data";    
+   private string ApiServiceName="organization";    
    //Api模块
-   private string ApiModuleName="functionapp";    
+   private string ApiModuleName="resource";    
    // Api文件名
-   private string ApiFileName="functionapp";  
+   private string ApiFileName="resource";  
    
    
    //国际化配置
    
    //国际化的微服务目录名   
-   private string GJHSerivce ="masterdata"; 
+   private string GJHSerivce ="organization"; 
    
    //国际化的模块目录名   
-   private string GJHModule ="functionApp"; 
+   private string GJHModule ="resource"; 
    
   
    
