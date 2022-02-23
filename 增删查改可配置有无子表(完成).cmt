@@ -23,7 +23,7 @@
  <# } #> 
 		
 </bingo-query>
-         <!-- 主表     -- >
+         <!-- 主表     -->
             <bingo-table
                     ref="table"
                     layoutName="<#=ApiServiceName #>-<#=ApiModuleName #>-<#= host.TableName #>"      
