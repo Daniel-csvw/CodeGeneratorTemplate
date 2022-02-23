@@ -15,7 +15,7 @@
  <# foreach (ColumnInfo c in host.Fieldlist) { #>
 		  <# if (!c.IsPrimaryKey && !c.IsIdentity) { #>
 			<bingo-grid-item>
-                <FormItem :label="$t('<#=GJHSerivce#>.page.<#=GJHModule#>.<#= ToCamel(c.ColumnName) #>')" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>">
+                <FormItem :label="$t('<#=i18nMicroSerivceDir#>.page.<#=i18nMicroSerivceModule#>.<#= ToCamel(c.ColumnName) #>')" prop="<#=ToCamel(c.ColumnName) #>" label-for="<#=ToCamel(c.ColumnName) #>">
                       <Input v-model.trim="queryData.<#=ToCamel(c.ColumnName) #>"  element-id="<#=ToCamel(c.ColumnName) #>" />
                 </FormItem>
             </bingo-grid-item>	
@@ -23,10 +23,10 @@
  <# } #> 
 		
 </bingo-query>
-         <!-- 主表-->
+         <!-- 主表     -- >
             <bingo-table
                     ref="table"
-                    layoutName=""       <!-- 请按照实际路由或者界面写一个唯一的布局名字-->  
+                    layoutName="<#=ApiServiceName #>-<#=ApiModuleName #>-<#= host.TableName #>"      
                     @getData="getData"                    
                     @on-new="add"
                     @on-delete="deleteBatch"
@@ -45,11 +45,11 @@
                  <!--<Button type='primary' customIcon='iconfont icondaochu' @click="exportFile" >导出</Button> -->
                 <span slot="action" slot-scope="{ row, index }">
                     <bingo-action-drop>  
-                        <a v-if="showEdit" @click="edit (row)">{{$t('<#=GJHSerivce#>.page.buttons.edit')}}</a>
-                        <a v-else   @click="edit (row)">{{$t('<#=GJHSerivce#>.page.buttons.view')}}</a>
+                        <a v-if="showEdit" @click="edit (row)">{{$t('<#=i18nMicroSerivceDir#>.page.buttons.edit')}}</a>
+                        <a v-else   @click="edit (row)">{{$t('<#=i18nMicroSerivceDir#>.page.buttons.view')}}</a>
                         <span slot="list" v-if="showEdit">
                             <DropdownItem>
-                                <span  @click="edit (row)">{{$t('<#=GJHSerivce#>.page.buttons.edit')}}</span>
+                                <span  @click="edit (row)">{{$t('<#=i18nMicroSerivceDir#>.page.buttons.edit')}}</span>
                             </DropdownItem>
 							<# if (hasDetail()) { #>
 							<DropdownItem>
@@ -57,7 +57,7 @@
                             </DropdownItem>
 							<# } #>  
                             <DropdownItem>
-                                <span  @click="delOne (row)">{{$t('<#=GJHSerivce#>.page.buttons.delete')}}</span>
+                                <span  @click="delOne (row)">{{$t('<#=i18nMicroSerivceDir#>.page.buttons.delete')}}</span>
                             </DropdownItem>
                          </span>   
                     </bingo-action-drop>
@@ -73,7 +73,7 @@
 <# foreach (ColumnInfo c in host.Fieldlist) { #>
                   <# if (!c.IsPrimaryKey && !c.IsIdentity) { #>
  <bingo-grid-item>
-                    <FormItem :label="$t('<#=GJHSerivce#>.page.<#=GJHModule#>.<#= ToCamel(c.ColumnName) #>')"  prop="<#=ToCamel(c.ColumnName) #>">
+                    <FormItem :label="$t('<#=i18nMicroSerivceDir#>.page.<#=i18nMicroSerivceModule#>.<#= ToCamel(c.ColumnName) #>')"  prop="<#=ToCamel(c.ColumnName) #>">
                         <Input v-model.trim="modalData.<#=ToCamel(c.ColumnName) #>" maxlength="50" />                                                    
                     </FormItem>  
                 </bingo-grid-item>
@@ -85,7 +85,7 @@
                      <!-- 是否有上传图片功能--> 
                     <!--上传图片功能-->
                     <bingo-grid-item   v-if="webUpload.showImg">
-                        <FormItem :label="$t('<#=GJHSerivce#>.page.<#=GJHModule#>.pic')"  >
+                        <FormItem :label="$t('<#=i18nMicroSerivceDir#>.page.<#=i18nMicroSerivceModule#>.pic')"  >
                             <bingo-webupload
                                     ref="webupload"
                                     :serveOption="webUpload.serveOptionSign"
@@ -126,7 +126,7 @@
   
 
 
-    import * as Api from '@/api/<#=ApiServiceName #>/<#=ApiModuleName #>/<#=ApiFileName#>'
+    //import * as Api from '@/api/<#=ApiServiceName #>/<#=ApiModuleName #>/<#=ApiFileName#>'
     
     export default {
         data () {
@@ -152,7 +152,7 @@
                         width: 60,
                         align: 'center',
                         fixed: 'left',
-                        title: $t('<#=GJHSerivce#>.page.common.index')
+                        title: $t('<#=i18nMicroSerivceDir#>.page.common.index')
                     },
                     {
                         type: 'selection',
@@ -161,7 +161,7 @@
                         fixed: 'left'
                     },
                     {
-                        title: $t('<#=GJHSerivce#>.page.common.operate'),
+                        title: $t('<#=i18nMicroSerivceDir#>.page.common.operate'),
                         key: 'action',
                         width: 100,
                         slot: 'action',
@@ -171,7 +171,7 @@
 <# foreach (ColumnInfo c in host.Fieldlist) {                    
   if (!c.IsPrimaryKey && !c.IsIdentity) { #>                      
                     {                      
-                        title:$t('<#=GJHSerivce#>.page.<#=GJHModule#>.<#=ToCamel(c.ColumnName) #>'),
+                        title:$t('<#=i18nMicroSerivceDir#>.page.<#=i18nMicroSerivceModule#>.<#=ToCamel(c.ColumnName) #>'),
                         key: '<#=ToCamel(c.ColumnName) #>',
                         minwidth: 120
                     },<# }  } #>
@@ -198,7 +198,7 @@
                  rules: {                    
                      <# foreach (ColumnInfo c in host.Fieldlist) { #>                    
                        <#=ToCamel(c.ColumnName) #>: [
-                          { required: true, message: $t('<#=GJHSerivce#>.validate.emptyCheck'), trigger: 'blur' }
+                          { required: true, message: $t('<#=i18nMicroSerivceDir#>.validate.emptyCheck'), trigger: 'blur' }
                        ],                    
                       <# } #>
 },
@@ -278,7 +278,7 @@
                 this.webUpload.showImg = true;
                 this.webUpload.serveOptionSign = {};
                 this.webUpload.folderName = this.modalData.id;
-                this.webUpload.serveOptionSign.folderId ="<#=GJHSerivce#>@functionapp-folder-funapp-" + this.webUpload.folderName;
+                this.webUpload.serveOptionSign.folderId ="<#=i18nMicroSerivceDir#>@functionapp-folder-funapp-" + this.webUpload.folderName;
                 this.webUpload.serveOptionSign.busId =  this.webUpload.folderName;
                 this.webUpload.serveOptionSign.name = "funapp";
                 this.webUpload.serveOptionSign.parentId = "e0001";
@@ -295,7 +295,7 @@
                     if (valid) {
                         if (!this.modalData.id) { //save
                             Api.Insert(this.modalData).then(res => {
-                                this.$Message.success($t('<#=GJHSerivce#>.notice.success.save'));
+                                this.$Message.success($t('<#=i18nMicroSerivceDir#>.notice.success.save'));
                                 this.modalData = res.data;
                                 this.getData();
                                 this.showForm = show;
@@ -303,7 +303,7 @@
                                 this.webUpload.showImg = true;
                                 this.webUpload.serveOptionSign = {};
                                 this.webUpload.folderName = this.modalData.id;
-                                this.webUpload.serveOptionSign.folderId ="<#=GJHSerivce#>@<#=ApiFileName#>-folder-funapp-" + this.webUpload.folderName;
+                                this.webUpload.serveOptionSign.folderId ="<#=i18nMicroSerivceDir#>@<#=ApiFileName#>-folder-funapp-" + this.webUpload.folderName;
                                 this.webUpload.serveOptionSign.busId =  this.webUpload.folderName;
                                 this.webUpload.serveOptionSign.name = "<#=ApiFileName#>";
                                 this.webUpload.serveOptionSign.parentId = "e0001";
@@ -318,7 +318,7 @@
                             });
                         } else { //update
                             Api.Update(this.modalData).then(res1 => {
-                                this.$Message.success($t('<#=GJHSerivce#>.notice.success.save'));
+                                this.$Message.success($t('<#=i18nMicroSerivceDir#>.notice.success.save'));
                                 this.modalData = res1.data;
                                 this.getData();
                                 this.showForm = show;
@@ -330,7 +330,7 @@
                             });
                         }
                     } else {
-                        this.$BMessage.warning($t('<#=GJHSerivce#>.notice.warning.completeCheck'));
+                        this.$BMessage.warning($t('<#=i18nMicroSerivceDir#>.notice.warning.completeCheck'));
                     }
                 });
             },
@@ -350,7 +350,7 @@
                         this.webUpload.showImg = true;
                         this.webUpload.serveOptionSign = {};
                         this.webUpload.folderName = this.modalData.id;
-                        this.webUpload.serveOptionSign.folderId ="<#=GJHSerivce#>@<#=ApiFileName#>-folder-funapp-" + this.webUpload.folderName;
+                        this.webUpload.serveOptionSign.folderId ="<#=i18nMicroSerivceDir#>@<#=ApiFileName#>-folder-funapp-" + this.webUpload.folderName;
                         this.webUpload.serveOptionSign.busId =  this.webUpload.folderName;
                         this.webUpload.serveOptionSign.name = "funapp";
                         this.webUpload.serveOptionSign.parentId = "e0001";
@@ -366,12 +366,12 @@
             },
             del(idArr) {
                 this.$Modal.confirm({
-                    title: $t('<#=GJHSerivce#>.reminder.confirm'),
-                    content: $t('<#=GJHSerivce#>.reminder.delete'),
+                    title: $t('<#=i18nMicroSerivceDir#>.reminder.confirm'),
+                    content: $t('<#=i18nMicroSerivceDir#>.reminder.delete'),
                     onOk: () => {
                         Api.DeleteBatch(idArr).then(res => {
 
-                            this.$Message.success($t('<#=GJHSerivce#>.notice.success.delete'));
+                            this.$Message.success($t('<#=i18nMicroSerivceDir#>.notice.success.delete'));
                             this.getData();
                         })
                     }
@@ -383,7 +383,7 @@
             deleteBatch() { //批量删除
                 let idArr = this.selectData.map(x => x.id);
                 if (idArr.length < 1) {
-                    this.$BMessage.warning($t('<#=GJHSerivce#>.notice.warning.selectCheck')); //(res.msg);
+                    this.$BMessage.warning($t('<#=i18nMicroSerivceDir#>.notice.warning.selectCheck')); //(res.msg);
                     return;
                 }
                 this.del(idArr);
@@ -416,6 +416,72 @@
 
 </style>
 
+
+
+
+<!-- 
+
+//api接口
+
+import request from '@/plugins/request';
+
+//后台服务controller的接口路径 
+//const URI = `/${window.$<#=ApiServiceName #>}/<#=ApiModuleName #>/<#= host.TableName #>`;
+const URI = '/<#=ApiServiceName #>/<#=ApiModuleName #>/<#= host.TableName #>';
+// 分页查询
+export function Page (data) {
+    return request({
+        url: `${URI}/page`,
+        method: 'get',
+        params: data
+    });
+}
+
+// 根据ID获取信息
+export function getById (id) {
+    return request({
+        url: `${URI}/`  + id,
+        method: 'get'
+    });
+}
+
+
+// 新建
+export function Insert (data) {
+    return request({
+        url: `${URI}`,
+        method: 'post',
+        data
+    });
+}
+
+
+// 修改
+export function Update (data) {
+    return request({
+        url: `${URI}`,
+        method: 'put',
+        data
+    });
+}
+ 
+
+// 批量删除（单个删除也用这个）
+export function DeleteBatch (ids) {
+    return request({
+        url: `${URI}/batch?ids=`+ids,
+        method: 'delete',
+    });
+}
+
+
+
+
+
+
+
+
+-->
  
 
 <#+
@@ -456,23 +522,22 @@
   
   
   
-   // api路径配置
+   // 前端api路径配置（就是前端src\api\ApiServiceName\ApiModuleName\ApiFileName）
    
    //Api 微服务名目录
-   private string ApiServiceName="organization";    
+   private string ApiServiceName="chips";    
    //Api模块
-   private string ApiModuleName="resource";    
+   private string ApiModuleName="chips";    
    // Api文件名
-   private string ApiFileName="resource";  
+   private string ApiFileName="chips";  
    
    
-   //国际化配置
+   //国际化配置   (src\i18n\locale\i18nMicroSerivceDir)
+   //国际化目录名（理论上和微服务名一致）   
+   private string i18nMicroSerivceDir ="chips"; 
    
-   //国际化的微服务目录名   
-   private string GJHSerivce ="organization"; 
-   
-   //国际化的模块目录名   
-   private string GJHModule ="resource"; 
+   //国际化的模块名 ,这个是代码里面的，page下级的模块名
+   private string i18nMicroSerivceModule ="chips"; 
    
   
    
