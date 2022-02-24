@@ -173,7 +173,9 @@
                     {                      
                         title:$t('<#=i18nMicroSerivceDir#>.page.<#=i18nMicroSerivceModule#>.<#=ToCamel(c.ColumnName) #>'),
                         key: '<#=ToCamel(c.ColumnName) #>',
-                        minwidth: 120
+                        width: 120,
+                        resizable: true
+
                     },<# }  } #>
                 ],
                 data: [],
