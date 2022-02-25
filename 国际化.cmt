@@ -127,6 +127,7 @@ export default {
         //成功的信息
         success: {
             save: '保存成功！',
+            edit: '修改成功！',
             // publish: '发布成功！',
             // active: '生效成功！',
             // upgrade: '升级成功！',

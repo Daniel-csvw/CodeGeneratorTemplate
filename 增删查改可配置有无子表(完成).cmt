@@ -206,10 +206,10 @@
 },
                 //主表弹出框的数据模型
                 modalData: {
-                    <# foreach (ColumnInfo c in host.Fieldlist) { #> 
-                       <#=ToCamel(c.ColumnName) #>:'',                    
+                    <# foreach (ColumnInfo c in host.Fieldlist) { #>
+                    <#=ToCamel(c.ColumnName) #>:'',
                     <# } #>
-                },
+},
                 showForm: false,
                 
 			 
@@ -392,8 +392,8 @@
             },
             initModalData() {
                 this.modalData = {
-                    <# foreach (ColumnInfo c in host.Fieldlist) { #> 
-                       <#=ToCamel(c.ColumnName) #>:'',                    
+                    <# foreach (ColumnInfo c in host.Fieldlist) { #>
+                    <#=ToCamel(c.ColumnName) #>:'',
                     <# } #>
                 };
                 
@@ -485,6 +485,169 @@ export function DeleteBatch (ids) {
 
 -->
  
+
+
+ <!-- 国际化
+
+export default {
+    locale: 'zh-CN',
+    language: '简体中文',
+    menu: {
+        i18n: '多语言'
+    },
+    page: {
+        //通用的字段信息, 如果用到的请打开注释，没有的自行添加
+        common: {
+            index: '序号',
+            operate: '操作',
+            EditFormCaption: '表单详情',
+            // name: '名称',
+            // shortName: '简称',
+            // description: '描述',
+            // creator: '创建人',
+            // createTime: '创建日期',
+            // modifier: '修改人',
+            // modifyTime: '修改日期',
+            // create: '创建信息',
+            // modify: '修改信息',
+            // color: '颜色',
+            // legend: '图例',
+            // selectOne: '请至少选择一条数据！',
+            // require: '必填项不能为空',
+            // maxLength: '不得超过{size}个字符',
+            // basic: '基本信息',
+            // type: '类型',
+            // selectTemplate: '选择模板',
+            // version: '版本',
+            // state: '状态',
+            // sopTime: 'SOP日期',
+            // publish: '发布状态',
+            // active: '生效状态',
+            // template: '模板',
+            // department: '部门',
+            // section: '股',
+            // header: '负责人',
+            // sectionChief: '股长',
+            // level: '级别',
+            // dateRange: '日期范围',
+            // selectedData: '已选择的数据',
+            // attachment: '附件',
+            // taskInfo: '任务信息',
+            // planInfo: '计划信息',
+            // hasNoData: '数据实体不存在，请与管理员联系！'
+
+
+        },
+        //所有的按钮文字都放这里(按钮都类似，放这里不要放各自模块)
+        buttons: {
+            new: '新建',
+            edit: '编辑',
+            editMultiple: '批量编辑',
+            view: '查看',
+            delete: '删除',
+            deleteMultiple: '批量删除',
+            refresh: '刷新',
+            export: '导出',
+            // exportImage: '导出图片',
+            // exportPPT: '导出PPT',
+            save: '保存',
+            saveAndClose: '保存并关闭',
+            close: '关闭',
+            // revoke: '撤回',
+            // preview: '预览',
+            // allocate: '分配资源',
+            // quoteTemplate: '模板引用',
+            // startUsing: '启用',
+            // stopUsing: '停用',
+            // publish: '发布',
+            // active: '生效',
+            // upgrade: '升级',
+            // version: '版本管理',
+            // compare: '快速对比',
+            // template: '选择模板',
+            // contrast: '对比',
+            // contrastSop: 'SOP对齐对比',
+            // reset: '重置',
+            // finish: '完成',
+            cancel: '取消',
+            confirm: '确定',
+            layout: '设置布局',
+        },
+
+        /*  这里写各个模块自己独有的，一般指字段名的国际化*/
+       <#=i18nMicroSerivceModule#>:{
+        <# foreach (ColumnInfo c in host.Fieldlist) { #>
+<# if (!c.IsPrimaryKey && !c.IsIdentity) { #>
+<#=ToCamel(c.ColumnName) #>: '<#=c.Description #>',
+              <#}#>
+       <# } #> 
+
+
+       }
+    },
+    //提示信息
+    reminder: {
+        delete: '是否确认删除？',
+        // publish: '发布后数据被冻结不可再维护，是否确认？',
+        // publishInvalid: '存在<a><strong>{count}</strong></a>个未下发的任务，请确认所有的任务都下发后再发布！',
+        // upgrade: '升级后的版本为<a><strong>{version}</strong></a>，当前版本数据无法回退，您确定要执行此操作吗？',
+        // active: '是否确认生效？',
+        // quote: '列表中已经存在的数据将被清空！',
+        // processing: '数据处理中，请稍后...',
+        // upgrading: '升级处理中，请稍后...',
+        // stopPlan: '计划停用后，所有的任务都会中止进行，是否确认操作？',
+        // startPlan: '计划启用后，所有的任务都会恢复进行，是否确认操作？',
+        // header: '任务中的【负责人】不能为空！',
+        // name: '任务中的【名称】不能为空！',
+        // referenceMilestone: '任务中的【前置任务】和【主里程碑参考点】不能同时为空！',
+        // sendTask: '是否确认发送任务?',
+        // resendTask: '已下发的任务会重新发送，是否确认发送?',
+        // stopTask: '是否确认停用/启用任务？',
+        // initializing: '正在初始化数据，请稍后...',
+        // startUsing: '启用后数据不可再维护，是否确认？',
+        // stopUsing: '停用后数据不可被计划使用，是否确认？',
+        // finishTask: '是否确认完成此任务?'
+    },
+    //返回信息
+    notice: {
+        //成功的信息
+        success: {
+            save: '保存成功！',
+            edit: '修改成功！',
+            delete: '删除成功！',
+            // publish: '发布成功！',
+            // active: '生效成功！',
+            // upgrade: '升级成功！',            
+            // startUsing: '启用成功！',
+            // stopUsing: '停用成功！',
+            // stopPlan: '计划停用成功！',
+            // startPlan: '计划启用成功！',
+            // taskSend: '任务下发成功！'
+        },
+        //警告信息
+        warning: {
+            save: '信息填写不完整！',
+            completeCheck: '您填写的信息不完整！',
+            selectCheck: '请选择一条数据！',
+
+            // invalidTask: '任务信息中存在未填写的数据项！',
+            // dataOutOfRange: '只有当前帐号创建的数据可被删除！'
+        },
+        //报错信息
+        error: {}
+    },
+    //验证
+    validate: {
+        predecessor: '只能有一个',
+        emptyCheck: '不能为空'
+    }
+}
+
+
+ 
+
+
+ -->
 
 <#+
     //驼峰处理
