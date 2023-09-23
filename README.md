@@ -7,11 +7,12 @@
 http://www.maticsoft.com/yuming.html
 
 
-The [maticsoft] template based on iview can be generated as follows.
--single page query.
--add, delete, check and correct a single page.
+The  template code based on iview for code-generator [maticsoft].
+can be generated as follows.
+-single page Read.
+-single page  CRUD with api .
 
-Dynamic soft code generator:
+code generator:
 Http://www.maticsoft.com/yuming.html
 
 
